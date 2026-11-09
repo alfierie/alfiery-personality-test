@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alfiery Personality Test</title>
+<meta name="description" content="40 questions, four letters. Find your personality type and compare with friends.">
+<meta property="og:title" content="Alfiery Personality Test">
+<meta property="og:description" content="40 questions, four letters. Find your personality type and compare with friends.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: single column. Four colored letter tiles (one per preference pair) are the identity: they flip in the hero, mark progress, and become your result. */
+:root {
+  --bg: #f3f1fa;
+  --surface: #ffffff;
+  --ink: #1b1530;
+  --muted: #625b78;
+  --line: #e0dcee;
+  --soft: #e9e6f4;
+  --c-ei: #ff8a6b;  /* energy: coral */
+  --c-sn: #7fa8ff;  /* information: sky */
+  --c-tf: #ffcf55;  /* decisions: sun */
+  --c-jp: #5fd3a0;  /* structure: mint */
+  --tile-ink: #1b1530;
+  --display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --shadow: 0 1px 0 rgba(27,21,48,.04), 0 12px 32px -12px rgba(27,21,48,.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #130f21; --surface: #1d1830; --ink: #f2effa; --muted: #a9a2c2; --line: #2e2846; --soft: #262040;
+    --shadow: 0 1px 0 rgba(0,0,0,.2), 0 16px 40px -16px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #130f21; --surface: #1d1830; --ink: #f2effa; --muted: #a9a2c2; --line: #2e2846; --soft: #262040;
+  --shadow: 0 1px 0 rgba(0,0,0,.2), 0 16px 40px -16px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 64px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.02; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--c-sn); outline-offset: 3px; border-radius: 6px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- Tiles ---------- */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; perspective: 800px; }
+.tile {
+  aspect-ratio: 1 / 1.08; max-width: 100%; border-radius: 22px; display: grid; place-items: center;
+  font-family: var(--display); font-weight: 800; color: var(--tile-ink); line-height: 1;
+  font-size: clamp(44px, 15vw, 96px); position: relative; overflow: hidden;
+  transform-style: preserve-3d; transition: transform .5s cubic-bezier(.3,1.4,.5,1);
+}
+.tile::after { /* soft highlight */
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(120% 80% at 20% 0%, rgba(255,255,255,.45), transparent 55%);
+  pointer-events: none;
+}
+.tile small { position: absolute; bottom: 10%; font-family: var(--body); font-weight: 700; font-size: clamp(9px, 2.4vw, 12px); letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+.t-EI { background: var(--c-ei); } .t-SN { background: var(--c-sn); } .t-TF { background: var(--c-tf); } .t-JP { background: var(--c-jp); }
+.tile.flip { transform: rotateX(90deg); }
+.tile:nth-child(odd) { rotate: -2deg; } .tile:nth-child(even) { rotate: 2deg; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  border: 0; border-radius: 999px; padding: 16px 28px; background: var(--ink); color: var(--bg);
+  font-weight: 700; font-size: 17px; display: inline-flex; align-items: center; gap: 10px;
+  transition: transform .15s ease, box-shadow .15s ease; box-shadow: var(--shadow);
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+.btn .arrow { transition: transform .15s ease; }
+.btn:hover .arrow { transform: translateX(3px); }
+.btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* ---------- Intro ---------- */
+.intro { display: flex; flex-direction: column; gap: 28px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 15px; }
+.brand .dots { display: inline-grid; grid-template-columns: repeat(2, 7px); gap: 3px; }
+.brand .dots i { width: 7px; height: 7px; border-radius: 2px; }
+.intro h1 { font-size: clamp(46px, 12.5vw, 92px); font-weight: 800; letter-spacing: -.035em; }
+.intro h1 .who { display: block; font-size: .5em; letter-spacing: -.02em; color: var(--muted); font-weight: 700; margin-bottom: .1em; }
+.lede { font-size: clamp(17px, 4.2vw, 20px); color: var(--muted); max-width: 46ch; }
+.lede strong { color: var(--ink); font-weight: 600; }
+.cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
+.facts { display: flex; gap: 18px; font-size: 14px; color: var(--muted); list-style: none; margin: 0; padding: 0; flex-wrap: wrap; }
+.facts b { color: var(--ink); font-family: var(--display); font-size: 18px; margin-right: 3px; }
+.legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.leg { display: flex; gap: 12px; align-items: center; background: var(--surface); border-radius: 16px; padding: 12px; box-shadow: var(--shadow); min-width: 0; }
+.leg .sw { flex: none; width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 17px; color: var(--tile-ink); }
+.leg div { min-width: 0; }
+.leg b { display: block; font-size: 15px; }
+.leg span { font-size: 13px; color: var(--muted); }
+.tip { font-size: 14px; color: var(--muted); background: var(--soft); border-radius: 14px; padding: 14px 16px; }
+.tip b { color: var(--ink); }
+
+/* ---------- Quiz ---------- */
+.qtop { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.back { background: none; border: 0; padding: 8px 0; font-weight: 600; color: var(--muted); }
+.back:disabled { opacity: .3; cursor: default; }
+.count { font-family: var(--display); font-weight: 700; font-variant-numeric: tabular-nums; font-size: 15px; }
+.count span { color: var(--muted); font-weight: 500; }
+.segs { display: grid; grid-template-columns: repeat(40, minmax(0, 1fr)); gap: 3px; }
+.segs i { height: 8px; border-radius: 3px; background: var(--line); transition: background .25s ease, transform .25s ease; }
+.segs i.cur { background: var(--ink); transform: scaleY(1.4); }
+.qcard { background: var(--surface); border-radius: 28px; padding: clamp(24px, 6vw, 40px); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 32px; animation: rise .35s cubic-bezier(.2,.8,.3,1); }
+@keyframes rise { from { opacity: .3; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.qnum { font-family: var(--display); font-weight: 800; font-size: 14px; letter-spacing: .1em; color: var(--muted); }
+.qtext { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 6.2vw, 34px); letter-spacing: -.02em; line-height: 1.15; min-height: 3.5em; text-wrap: pretty; }
+.scale { display: flex; flex-direction: column; gap: 12px; }
+.opts { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+.opt {
+  flex: none; border-radius: 50%; border: 2.5px solid var(--ink); background: transparent; padding: 0;
+  transition: transform .15s cubic-bezier(.3,1.6,.5,1), background .15s ease, border-color .15s ease;
+  opacity: .9;
+}
+.opt[data-v="-3"], .opt[data-v="3"] { width: 56px; height: 56px; }
+.opt[data-v="-2"], .opt[data-v="2"] { width: 46px; height: 46px; }
+.opt[data-v="-1"], .opt[data-v="1"] { width: 36px; height: 36px; }
+.opt[data-v="0"] { width: 26px; height: 26px; border-color: var(--muted); }
+.opt:hover { transform: scale(1.12); }
+.opt.on { background: var(--ink); transform: scale(1.12); }
+.ends { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; }
+.ends span { color: var(--muted); }
+.hint { font-size: 13px; color: var(--muted); text-align: center; }
+@media (max-width: 400px) {
+  .opt[data-v="-3"], .opt[data-v="3"] { width: 46px; height: 46px; }
+  .opt[data-v="-2"], .opt[data-v="2"] { width: 38px; height: 38px; }
+  .opt[data-v="-1"], .opt[data-v="1"] { width: 30px; height: 30px; }
+  .opt[data-v="0"] { width: 22px; height: 22px; }
+  .segs { gap: 2px; }
+}
+
+/* ---------- Result ---------- */
+.poster { background: var(--surface); border-radius: 32px; padding: clamp(22px, 6vw, 40px); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 24px; }
+.poster-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.poster .tile { font-size: clamp(48px, 16vw, 104px); }
+.reveal .tile { animation: flipin .7s cubic-bezier(.3,1.5,.5,1) both; }
+.reveal .tile:nth-child(2) { animation-delay: .12s; } .reveal .tile:nth-child(3) { animation-delay: .24s; } .reveal .tile:nth-child(4) { animation-delay: .36s; }
+@keyframes flipin { from { transform: rotateX(-100deg) translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+.tile.even { background: var(--soft); color: var(--muted); }
+.nick { font-size: clamp(36px, 10vw, 60px); font-weight: 800; letter-spacing: -.03em; }
+.summary { font-size: clamp(17px, 4.2vw, 19px); max-width: 52ch; }
+.section-h { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.spectrum { display: flex; flex-direction: column; gap: 22px; }
+.ax { display: flex; flex-direction: column; gap: 8px; }
+.ax-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14px; }
+.ax-top b { font-family: var(--display); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+.ax-top .lo { opacity: .45; font-weight: 500; }
+.ax-what { font-size: 13px; color: var(--muted); text-align: center; flex: 1; min-width: 0; }
+.track { position: relative; height: 14px; border-radius: 99px; background: var(--soft); }
+.track .fill { position: absolute; top: 0; bottom: 0; border-radius: 99px; transition: width .9s cubic-bezier(.2,.8,.2,1); }
+.track .mid { position: absolute; left: 50%; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--muted); opacity: .4; border-radius: 2px; }
+.track .knob { position: absolute; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); transition: left .9s cubic-bezier(.2,.8,.2,1); }
+.ax-note { font-size: 13px; color: var(--muted); }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.box { background: var(--surface); border-radius: 22px; padding: 20px 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.box h3 { font-size: 18px; font-weight: 800; }
+.box ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.box li { display: flex; gap: 10px; align-items: baseline; }
+.box li::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 3px; background: var(--dot); translate: 0 -1px; }
+.box.good { --dot: var(--c-jp); } .box.warn { --dot: var(--c-ei); }
+.close { background: var(--soft); border-radius: 22px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+.close .row button { background: var(--surface); border: 0; box-shadow: var(--shadow); border-radius: 999px; padding: 8px 16px; font-family: var(--display); font-weight: 800; font-size: 15px; }
+.close .row button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.alt { display: flex; flex-direction: column; gap: 6px; }
+.alt h3 { font-size: 18px; }
+.share { display: flex; flex-direction: column; gap: 12px; }
+.share textarea { width: 100%; resize: none; font: inherit; font-size: 15px; padding: 14px 16px; border-radius: 16px; border: 0; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.fine { font-size: 13px; color: var(--muted); max-width: 62ch; }
+.foot { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+@media (max-width: 520px) { .cols, .legend { grid-template-columns: minmax(0, 1fr); } .tiles { gap: 7px; } .tile { border-radius: 16px; } }
+@media (max-width: 460px) { .tile small { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+// ---------- Items ----------
+// k = +1: agreeing pushes toward the first letter of the pair (E, S, T, J). k = -1: toward the second (I, N, F, P).
+const ITEMS = {
+  EI: [
+    ["After a long week, a night out with a group of people gives me energy.", 1],
+    ["I often work out what I think by talking it through out loud.", 1],
+    ["At a party, I'll start conversations with people I don't know.", 1],
+    ["I get restless if I spend a whole day by myself.", 1],
+    ["In a group discussion, I'm usually one of the first to speak.", 1],
+    ["Even after a fun social event, I need time alone to recover.", -1],
+    ["I prefer to think something through fully before I say it.", -1],
+    ["I'd rather have a long one-on-one conversation than mingle in a crowd.", -1],
+    ["When my phone rings unexpectedly, I often let it go and text back later.", -1],
+    ["People tend to learn important things about me only after knowing me a long time.", -1],
+  ],
+  SN: [
+    ["I trust what I've seen and experienced more than hunches.", 1],
+    ["I like instructions to be concrete and step by step.", 1],
+    ["I notice physical details that others miss, like what someone wore or how a room was arranged.", 1],
+    ["I prefer methods that are proven over ones that are new and untested.", 1],
+    ["When I tell a story, I stick to what actually happened, in order.", 1],
+    ["I often get lost in thoughts about possibilities and \"what if\" scenarios.", -1],
+    ["I'm more interested in what something could become than in what it is now.", -1],
+    ["I enjoy abstract ideas and theories even when they have no practical use.", -1],
+    ["I tend to read between the lines and look for hidden meanings.", -1],
+    ["Once I understand how a routine task works, doing it again bores me.", -1],
+  ],
+  TF: [
+    ["In a disagreement, I focus on whether the reasoning holds up more than on how people feel.", 1],
+    ["I can make a decision that upsets people if I'm convinced it's the right call.", 1],
+    ["I enjoy a good debate, even about things I don't care much about.", 1],
+    ["When solving a problem, I try to set my feelings aside and look at it objectively.", 1],
+    ["I'd rather get blunt feedback than gentle feedback that hides the point.", 1],
+    ["When making a decision, my first thought is how it will affect the people involved.", -1],
+    ["I find it hard to criticize someone, even when they deserve it.", -1],
+    ["Keeping the peace in a group matters more to me than proving I'm right.", -1],
+    ["Other people's stories and struggles move me easily.", -1],
+    ["I tend to absorb my friends' moods as if they were my own.", -1],
+  ],
+  JP: [
+    ["I like to have plans settled well in advance.", 1],
+    ["I usually finish assignments well before the deadline.", 1],
+    ["I keep lists or a calendar and actually follow them.", 1],
+    ["An open decision bothers me until it's made.", 1],
+    ["My room or workspace is usually tidy and organized.", 1],
+    ["I prefer to keep my options open rather than commit early.", -1],
+    ["I do my best work in a burst right before a deadline.", -1],
+    ["I'm happy to drop a plan when something better comes along.", -1],
+    ["I often start new projects before finishing the old ones.", -1],
+    ["A strict schedule makes me feel boxed in.", -1],
+  ],
+};
+const AXES = [
+  { id: "EI", a: "E", b: "I", an: "Extraversion", bn: "Introversion", what: "Energy", long: "Where you get your energy" },
+  { id: "SN", a: "S", b: "N", an: "Sensing", bn: "Intuition", what: "Information", long: "What information you trust" },
+  { id: "TF", a: "T", b: "F", an: "Thinking", bn: "Feeling", what: "Decisions", long: "How you make decisions" },
+  { id: "JP", a: "J", b: "P", an: "Judging", bn: "Perceiving", what: "Structure", long: "How you handle plans" },
+];
+const COLOR = { EI: "var(--c-ei)", SN: "var(--c-sn)", TF: "var(--c-tf)", JP: "var(--c-jp)" };
+// Fixed interleaved order: rotate through the four pairs, alternating the direction of keying.
+const ORDER_IDX = [0, 5, 1, 6, 2, 7, 3, 8, 4, 9];
+const QUESTIONS = [];
+ORDER_IDX.forEach((i, r) => {
+  const axes = r % 2 ? ["SN", "JP", "EI", "TF"] : ["EI", "TF", "SN", "JP"];
+  axes.forEach(ax => QUESTIONS.push({ ax, t: ITEMS[ax][i][0], k: ITEMS[ax][i][1] }));
+});
+
+// ---------- Type descriptions ----------
+const TYPES = {
+  INTJ: ["The Strategist", "Independent and future-focused. You build long-range plans, see how the pieces of a system fit, and quietly improve whatever you touch.", ["Sees the big picture early", "Sets high standards and meets them", "Decisive once the thinking is done"], ["Can come across as cold or dismissive", "Impatient with ideas you consider inefficient"]],
+  INTP: ["The Theorist", "Curious about how everything works. You take ideas apart, look for the underlying principle, and enjoy a problem more than its solution.", ["Original, precise thinking", "Spots flaws in an argument fast", "Open to unusual ideas"], ["Projects stall after the interesting part", "Can forget that people need reassurance, not just accuracy"]],
+  ENTJ: ["The Captain", "Direct and driven. You see what needs to happen, organize people around it, and push until it's done.", ["Natural at taking charge", "Turns vision into concrete plans", "Confident under pressure"], ["Can steamroll quieter people", "Treats feelings as an obstacle to efficiency"]],
+  ENTP: ["The Provocateur", "Quick, playful, and full of ideas. You love testing assumptions, arguing the other side, and finding the angle nobody else saw.", ["Inventive problem-solver", "Thinks fast on your feet", "Energizes a room with ideas"], ["Bored by follow-through", "Argues for sport, which can wear people out"]],
+  INFJ: ["The Confidant", "Quietly perceptive. You read people well, care about meaning, and hold a clear inner picture of how things should be.", ["Deep insight into people", "Principled and committed", "Good listener who remembers"], ["Burns out from absorbing others' needs", "Holds back frustration until it boils over"]],
+  INFP: ["The Dreamer", "Guided by strong personal values. You're imaginative, sincere, and loyal to the people and causes that matter to you.", ["Creative and expressive", "Deep empathy", "True to your values"], ["Takes criticism personally", "Practical tasks get pushed aside"]],
+  ENFJ: ["The Mentor", "Warm and persuasive. You notice what people need, bring them together, and help them grow.", ["Inspires and encourages others", "Reads a room instantly", "Organizes people around a shared goal"], ["Can neglect your own needs", "Overinvests in other people's choices"]],
+  ENFP: ["The Spark", "Enthusiastic and full of possibility. You connect easily, chase new ideas, and bring energy to everyone around you.", ["Contagious enthusiasm", "Sees potential in people", "Adaptable and creative"], ["Starts more than you finish", "Gets restless with routine and detail"]],
+  ISTJ: ["The Steward", "Reliable and thorough. You keep your word, respect what works, and make sure things are done properly.", ["Dependable to the core", "Excellent with detail", "Calm and steady"], ["Resists change without strong evidence", "Can seem rigid to more spontaneous people"]],
+  ISFJ: ["The Caretaker", "Considerate and loyal. You remember what matters to people and quietly make sure everyone is looked after.", ["Attentive to others' needs", "Hardworking and patient", "Remembers the small things"], ["Says yes too often", "Avoids conflict until it's too late"]],
+  ESTJ: ["The Organizer", "Practical and in charge. You set clear expectations, keep things running, and value doing things the right way.", ["Gets things done efficiently", "Clear and direct", "Strong sense of responsibility"], ["Can be inflexible about methods", "Impatient with indecision"]],
+  ESFJ: ["The Host", "Sociable and caring. You build community, keep traditions alive, and make people feel welcome.", ["Makes others feel included", "Practical helper", "Loyal and warm"], ["Sensitive to disapproval", "Can worry too much about what others think"]],
+  ISTP: ["The Tinkerer", "Calm, hands-on, and logical. You learn by doing, fix what's broken, and stay cool in a crisis.", ["Excellent troubleshooter", "Composed under pressure", "Independent and resourceful"], ["Hard to read emotionally", "Commitment can feel like a trap"]],
+  ISFP: ["The Artist", "Gentle and observant. You live in the moment, have a strong sense of style, and express yourself through what you do.", ["Aesthetic sense", "Kind and accepting", "Flexible and present"], ["Avoids planning ahead", "Keeps important feelings to yourself"]],
+  ESTP: ["The Daredevil", "Bold and action-oriented. You read situations fast, take risks, and prefer doing to talking about doing.", ["Quick to act", "Persuasive and fun", "Practical in a crisis"], ["Can be impulsive", "Loses interest in long-term plans"]],
+  ESFP: ["The Firecracker", "Spontaneous and generous. You bring fun to any situation, notice what people enjoy, and live fully in the present.", ["Lights up a room", "Generous and warm", "Adapts to anything"], ["Dislikes planning and routine", "Can avoid hard conversations"]],
+};
+
+// ---------- State ----------
+const KEY = "four-letters-v1";
+const fresh = () => ({ step: "intro", i: 0, ans: Array(QUESTIONS.length).fill(null) });
+let state = load() || fresh();
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); return s && s.ans && s.ans.length === QUESTIONS.length ? s : null; } catch (e) { return null; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+let flipTimer = null;
+
+function render() {
+  save();
+  clearInterval(flipTimer);
+  if (state.step === "intro") renderIntro();
+  else if (state.step === "quiz") renderQuiz();
+  else renderResult();
+}
+
+const brand = () => `<div class="brand"><span class="dots">${AXES.map(a => `<i style="background:${COLOR[a.id]}"></i>`).join("")}</span>Alfiery</div>`;
+
+function renderIntro() {
+  const answered = state.ans.filter(v => v !== null).length;
+  app.innerHTML = `
+    <section class="intro">
+      ${brand()}
+      <div class="tiles" id="heroTiles" aria-hidden="true">
+        ${AXES.map((a, n) => `<div class="tile t-${a.id}" data-n="${n}">${n % 2 ? a.b : a.a}</div>`).join("")}
+      </div>
+      <h1><span class="who">The Alfiery</span>Personality Test</h1>
+      <p class="lede">Forty honest questions. <strong>Four letters that explain how you recharge, think, decide and plan.</strong> Then send it to your friends and compare.</p>
+      <div class="cta">
+        <button class="btn" id="start">${answered ? "Continue" : "Find my type"} <span class="arrow">→</span></button>
+        ${answered ? `<button class="btn ghost" id="restart">Start over</button>` : ""}
+        <ul class="facts"><li><b>40</b>questions</li><li><b>6</b>minutes</li></ul>
+      </div>
+      <div class="legend">
+        ${AXES.map(a => `<div class="leg"><span class="sw t-${a.id}">${a.a}${a.b}</span><div><b>${a.an} or ${a.bn}</b><span>${a.long}</span></div></div>`).join("")}
+      </div>
+      <p class="tip"><b>For an accurate result:</b> answer quickly, picture your everyday self rather than work-mode or best-day you, and use the middle only when you truly can't lean either way.</p>
+      <p class="foot">Your answers never leave this device.</p>
+    </section>`;
+  document.getElementById("start").onclick = () => {
+    state.step = "quiz";
+    const e = state.ans.findIndex(v => v === null);
+    state.i = e === -1 ? QUESTIONS.length - 1 : e;
+    render();
+  };
+  const r = document.getElementById("restart");
+  if (r) r.onclick = () => { state = fresh(); state.step = "quiz"; render(); };
+
+  // Hero tiles flip between each pair's two letters.
+  if (!reduced) {
+    const tiles = [...document.querySelectorAll("#heroTiles .tile")];
+    let k = 0;
+    flipTimer = setInterval(() => {
+      const t = tiles[k % 4], a = AXES[k % 4];
+      t.classList.add("flip");
+      setTimeout(() => { t.textContent = t.textContent === a.a ? a.b : a.a; t.classList.remove("flip"); }, 250);
+      k++;
+    }, 900);
+  }
+}
+
+const VAL_LABEL = { 3: "Strongly agree", 2: "Agree", 1: "Slightly agree", 0: "Neutral", "-1": "Slightly disagree", "-2": "Disagree", "-3": "Strongly disagree" };
+
+function renderQuiz() {
+  const q = QUESTIONS[state.i];
+  const cur = state.ans[state.i];
+  const order = [-3, -2, -1, 0, 1, 2, 3];
+  app.innerHTML = `
+    <div class="qtop">
+      <button class="back" id="back" ${state.i === 0 ? "disabled" : ""}>← Back</button>
+      ${brand()}
+      <span class="count">${state.i + 1}<span> / ${QUESTIONS.length}</span></span>
+    </div>
+    <div class="segs" aria-hidden="true">
+      ${QUESTIONS.map((qq, j) => `<i class="${j === state.i ? "cur" : ""}" style="${state.ans[j] !== null && j !== state.i ? `background:${COLOR[qq.ax]}` : ""}"></i>`).join("")}
+    </div>
+    <div class="qcard">
+      <p class="qnum">QUESTION ${String(state.i + 1).padStart(2, "0")}</p>
+      <p class="qtext" id="qtext">${esc(q.t)}</p>
+      <div class="scale" role="radiogroup" aria-labelledby="qtext">
+        <div class="opts">
+          ${order.map(v => `<button class="opt ${cur === v ? "on" : ""}" data-v="${v}" role="radio" aria-checked="${cur === v}" aria-label="${VAL_LABEL[v]}" title="${VAL_LABEL[v]}"></button>`).join("")}
+        </div>
+        <div class="ends"><span>Disagree</span><span>Agree</span></div>
+      </div>
+    </div>
+    <p class="hint">Keys 1–7 answer · ← goes back · progress saves automatically</p>`;
+  document.getElementById("back").onclick = goBack;
+  app.querySelectorAll(".opt").forEach(b => b.onclick = () => answer(Number(b.dataset.v)));
+}
+
+let busy = false;
+function answer(v) {
+  if (busy) return;
+  state.ans[state.i] = v;
+  app.querySelectorAll(".opt").forEach(b => { const on = Number(b.dataset.v) === v; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+  busy = true;
+  setTimeout(() => {
+    busy = false;
+    const firstEmpty = state.ans.findIndex(x => x === null);
+    if (state.i < QUESTIONS.length - 1) state.i++;
+    else if (firstEmpty !== -1) state.i = firstEmpty;
+    else { state.step = "result"; window.scrollTo(0, 0); }
+    render();
+  }, 200);
+}
+function goBack() { if (state.i > 0) { state.i--; render(); } }
+
+document.addEventListener("keydown", e => {
+  if (state.step !== "quiz" || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (/^[1-7]$/.test(e.key)) answer(Number(e.key) - 4);
+  else if (e.key === "ArrowLeft" || e.key === "Backspace") { e.preventDefault(); goBack(); }
+});
+
+// ---------- Scoring ----------
+function score() {
+  return AXES.map(ax => {
+    let s = 0, n = 0;
+    QUESTIONS.forEach((q, j) => { if (q.ax === ax.id && state.ans[j] !== null) { s += q.k * state.ans[j]; n++; } });
+    const max = n * 3 || 1;
+    const pctA = Math.round(50 + (s / max) * 50);
+    const letter = pctA > 50 ? ax.a : pctA < 50 ? ax.b : "x";
+    const d = Math.abs(pctA - 50);
+    const strength = d === 0 ? "Even split" : d < 10 ? "Slight" : d < 25 ? "Moderate" : d < 40 ? "Clear" : "Very clear";
+    return { ...ax, pctA, pctB: 100 - pctA, letter, d, strength };
+  });
+}
+
+function renderResult() {
+  const res = score();
+  const code = res.map(r => r.letter).join("");
+  const lookup = res.map(r => r.letter === "x" ? r.b : r.letter).join("");
+  const [nick, summary, strengths, watch] = TYPES[lookup];
+  const close = res.filter(r => r.d < 10);
+  const alts = close.map(r => { const c = lookup.split(""); const idx = AXES.findIndex(a => a.id === r.id); c[idx] = c[idx] === r.a ? r.b : r.a; return c.join(""); });
+  const shareText = `I'm ${code.toUpperCase()}, ${nick} (${res.map(r => r.pctA >= 50 ? `${r.a} ${r.pctA}%` : `${r.b} ${r.pctB}%`).join(" · ")}). Take the Alfiery Personality Test and tell me yours.`;
+
+  app.innerHTML = `
+    ${brand()}
+    <section class="poster">
+      <div class="poster-top"><p class="eyebrow">Your type</p><p class="eyebrow">Alfiery Personality Test</p></div>
+      <div class="tiles reveal" aria-label="${code.toUpperCase()}">
+        ${res.map(r => `<div class="tile t-${r.id} ${r.letter === "x" ? "even" : ""}">${r.letter === "x" ? "x" : r.letter}<small>${r.letter === r.a ? r.an : r.letter === r.b ? r.bn : "Even"}</small></div>`).join("")}
+      </div>
+      <h1 class="nick">${nick}</h1>
+      <p class="summary">${summary}</p>
+    </section>
+
+    <section class="poster">
+      <h2 class="section-h">Your spectrum</h2>
+      <div class="spectrum">
+        ${res.map(r => {
+          const lean = r.pctA >= 50;
+          const w = Math.abs(r.pctA - 50);
+          return `
+          <div class="ax">
+            <div class="ax-top">
+              <b class="${lean ? "" : "lo"}">${r.an} ${r.pctA}%</b>
+              <span class="ax-what">${r.what}</span>
+              <b class="${lean ? "lo" : ""}">${r.pctB}% ${r.bn}</b>
+            </div>
+            <div class="track" role="img" aria-label="${r.an} ${r.pctA} percent, ${r.bn} ${r.pctB} percent">
+              <span class="fill" data-w="${w}" style="background:${COLOR[r.id]};${lean ? "right:50%" : "left:50%"};width:0"></span>
+              <span class="mid"></span>
+              <span class="knob" data-l="${100 - r.pctA}" style="left:50%"></span>
+            </div>
+            <p class="ax-note">${r.strength}${r.d ? ` preference for ${lean ? r.an : r.bn}` : ""}</p>
+          </div>`;
+        }).join("")}
+      </div>
+    </section>
+
+    <section class="cols">
+      <div class="box good"><h3>Strengths</h3><ul>${strengths.map(s => `<li>${s}</li>`).join("")}</ul></div>
+      <div class="box warn"><h3>Watch out for</h3><ul>${watch.map(s => `<li>${s}</li>`).join("")}</ul></div>
+    </section>
+
+    ${close.length ? `
+    <section class="close">
+      <h3 class="section-h" style="font-size:18px">Close call on ${close.map(r => `${r.a}/${r.b}`).join(" and ")}</h3>
+      <p>Scores this near the middle can flip on a retake. Read the neighbouring type${alts.length > 1 ? "s" : ""} too and pick whichever sounds more like you.</p>
+      <div class="row">${alts.map(a => `<button data-alt="${a}" aria-pressed="false">${a}</button>`).join("")}</div>
+      <div id="altbox"></div>
+    </section>` : ""}
+
+    <section class="share">
+      <h2 class="section-h">Send it to your friends</h2>
+      <textarea id="sharetext" rows="3" readonly>${esc(shareText)}</textarea>
+      <div class="row">
+        <button class="btn" id="copy">Copy my result</button>
+        <button class="btn ghost" id="redo">Retake the test</button>
+      </div>
+    </section>
+
+    <p class="fine">The four letters describe preferences, not abilities, and nobody is purely one side. Trust the letters where your bars lean clearly. Inspired by Jung's type theory; this is not the official MBTI® assessment.</p>`;
+
+  // Animate the spectrum bars in after first paint.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    app.querySelectorAll(".fill").forEach(f => f.style.width = f.dataset.w + "%");
+    app.querySelectorAll(".knob").forEach(k => k.style.left = k.dataset.l + "%");
+  }));
+
+  app.querySelectorAll("[data-alt]").forEach(b => b.onclick = () => {
+    const t = TYPES[b.dataset.alt];
+    app.querySelectorAll("[data-alt]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    document.getElementById("altbox").innerHTML = `<div class="alt"><h3>${b.dataset.alt} · ${t[0]}</h3><p>${t[1]}</p></div>`;
+  });
+  const copyBtn = document.getElementById("copy");
+  copyBtn.onclick = () => {
+    const ta = document.getElementById("sharetext");
+    const done = () => { copyBtn.textContent = "Copied"; setTimeout(() => copyBtn.textContent = "Copy my result", 1600); };
+    const fallback = () => { ta.select(); copyBtn.textContent = "Selected. Press Ctrl/⌘+C"; };
+    try { navigator.clipboard.writeText(ta.value).then(done, fallback); } catch (e) { fallback(); }
+  };
+  document.getElementById("redo").onclick = () => { state = fresh(); render(); };
+}
+
+render();
+</script>
+</body>
+</html>
